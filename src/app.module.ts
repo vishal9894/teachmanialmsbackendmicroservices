@@ -12,6 +12,11 @@ import { AdminModule } from './admin/admin.module';
 import { RoleModule } from './role/role.module';
 import { PermissionModule } from './permission/permission.module';
 import { TopTeacherModule } from './top-teacher/top-teacher.module';
+import { S3Service } from './common/services/s3.service';
+import { TopStudentsModule } from './top-students/top-students.module';
+import { CoursesModule } from './courses/courses.module';
+import { BannerModule } from './banner/banner.module';
+
 
 @Module({
   imports: [
@@ -38,8 +43,14 @@ import { TopTeacherModule } from './top-teacher/top-teacher.module';
     RoleModule,
     PermissionModule,
     TopTeacherModule,
+    TopStudentsModule,
+    CoursesModule,
+    BannerModule,
+    
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService,S3Service],
+ 
+  exports :[S3Service]
 })
 export class AppModule {}

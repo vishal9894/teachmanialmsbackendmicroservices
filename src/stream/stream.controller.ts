@@ -1,34 +1,47 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { StreamService } from './stream.service';
+import { CreateStreamDto } from './dto/create-stream.dto';
+
 
 @Controller('stream')
 export class StreamController {
   constructor(private readonly streamService: StreamService) {}
 
   @Post()
+  @UseInterceptors(FileInterceptor('image'))
   createStream(
-    @Body() data: { name: string; superstreamId: string },
+    @Body() createStreamDto: CreateStreamDto,
+    @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.streamService.create(
-      data.name,
-      data.superstreamId,
-    );
+    return this.streamService.create(createStreamDto, file);
   }
 
-  // ✅ GET ALL STREAMS
   @Get()
   getStreams() {
     return this.streamService.findAll();
   }
 
-  // ✅ GET STREAM BY ID
+  @Get('superstream/:id')
+  getStreamBySuperStream(@Param('id') id: string) {
+    return this.streamService.findBySuperStream(id);
+  }
+
   @Get(':id')
   getStream(@Param('id') id: string) {
     return this.streamService.findOne(id);
   }
-
-  @Get('superstream/:id')
-  getStreamById(@Param('id') id: string){
-    return this.streamService.findBySuperStream(id);
+  @Delete(':id')
+  delete (@Param('id') id : string){
+    return this.streamService.remove(id)
   }
 }

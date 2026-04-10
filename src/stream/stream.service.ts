@@ -1,49 +1,82 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+
 import { Stream } from './entities/stream.entity';
 import { SuperStream } from 'src/superstream/entities/superstream.entity';
-import { Repository } from 'typeorm';
+import { CreateStreamDto } from './dto/create-stream.dto';
+import { S3Service } from 'src/common/services/s3.service';
 
 @Injectable()
 export class StreamService {
   constructor(
     @InjectRepository(Stream)
-    private streamRepo: Repository<Stream>,
+    private readonly streamRepo: Repository<Stream>,
 
     @InjectRepository(SuperStream)
-    private superstreamRepo: Repository<SuperStream>,
+    private readonly superstreamRepo: Repository<SuperStream>,
+
+    private readonly s3Service: S3Service,
   ) {}
 
-  // ✅ CREATE STREAM
-  async create(name: string, superstreamId: string) {
-    const superstream = await this.superstreamRepo.findOne({
-      where: { id: superstreamId },
-    });
+  /* ================= CREATE STREAM ================= */
 
-    if (!superstream) {
-      throw new NotFoundException('SuperStream not found');
-    }
+ async create(
+  createStreamDto: CreateStreamDto,
+  file: Express.Multer.File,
+) {
+  const { name, description, superstreamId } = createStreamDto;
 
-    const stream = this.streamRepo.create({
-      name,
-      superstream,
-    });
+  const superstream = await this.superstreamRepo.findOne({
+    where: { id: superstreamId },
+  });
 
-    return await this.streamRepo.save(stream);
+  if (!superstream) {
+    throw new NotFoundException('SuperStream not found');
   }
 
-  // ✅ GET ALL STREAMS
+  // upload image to S3
+  let imageUrl: string | undefined;
+
+  if (file) {
+    const upload = await this.s3Service.upload(file, 'streams');
+    imageUrl = upload;
+  }
+
+  const stream = this.streamRepo.create({
+    name,
+    description,
+    image: imageUrl,
+    superstream,
+  });
+
+  return await this.streamRepo.save(stream);
+}
+
+  /* ================= GET ALL ================= */
+
   async findAll() {
-    return await this.streamRepo.find({
-      relations: ['superstream'],
+    return this.streamRepo.find({
+      relations: {
+        superstream: true,
+      },
+      order: {
+        name: 'ASC',
+      },
     });
   }
 
-  // ✅ GET SINGLE STREAM
+  /* ================= GET ONE ================= */
+
   async findOne(id: string) {
     const stream = await this.streamRepo.findOne({
       where: { id },
-      relations: ['superstream'],
+      relations: {
+        superstream: true,
+      },
     });
 
     if (!stream) {
@@ -53,45 +86,39 @@ export class StreamService {
     return stream;
   }
 
-  async findBySuperStream(superstreamId: string) {
-  const streams = await this.streamRepo.find({
-    where: {
-      superstream: {
-        id: superstreamId,
-      },
-    },
-    select :{
-      id: true ,
-      name : true
-    }
-  });
+  /* ================= GET BY SUPERSTREAM ================= */
 
-  return streams;
-}
+  async findBySuperStream(superstreamId: string) {
+    return this.streamRepo.find({
+      where: {
+        superstream: { id: superstreamId },
+      },
+      select: {
+        id: true,
+        name: true,
+        image: true,
+      },
+    });
+  }
+
+  /* ================= UPDATE ================= */
 
   async update(
     id: string,
-    name?: string,
-    superstreamId?: string,
+    updateDto: Partial<CreateStreamDto>,
+    file?: Express.Multer.File,
   ) {
-    const stream = await this.streamRepo.findOne({
-      where: { id },
-      relations: ['superstream'],
-    });
-
-    if (!stream) {
-      throw new NotFoundException('Stream not found');
-    }
+    const stream = await this.findOne(id);
 
     // update name
-    if (name) {
-      stream.name = name;
+    if (updateDto.name) {
+      stream.name = updateDto.name;
     }
 
-    // update superstream relation
-    if (superstreamId) {
+    // update superstream
+    if (updateDto.superstreamId) {
       const superstream = await this.superstreamRepo.findOne({
-        where: { id: superstreamId },
+        where: { id: updateDto.superstreamId },
       });
 
       if (!superstream) {
@@ -101,17 +128,22 @@ export class StreamService {
       stream.superstream = superstream;
     }
 
-    return await this.streamRepo.save(stream);
+    // update image
+    if (file) {
+      const imageUrl = await this.s3Service.upload(
+        file,
+        'streams',
+      );
+      stream.image = imageUrl;
+    }
+
+    return this.streamRepo.save(stream);
   }
 
-  async remove(id: string) {
-    const stream = await this.streamRepo.findOne({
-      where: { id },
-    });
+  /* ================= DELETE ================= */
 
-    if (!stream) {
-      throw new NotFoundException('Stream not found');
-    }
+  async remove(id: string) {
+    const stream = await this.findOne(id);
 
     await this.streamRepo.remove(stream);
 

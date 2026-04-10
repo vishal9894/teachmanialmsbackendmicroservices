@@ -1,20 +1,36 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from 'typeorm';
+// permission.entity.ts
+
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToMany,
+} from 'typeorm';
 import { Role } from '../../role/entities/role.entity';
 
-@Entity({ name: 'permissions' })
+@Entity('permissions')
 export class Permission {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column()
-  name: string;
+  name!: string;
 
-  @Column()
-  permission_group: string;
+  @Column({ name: 'permission_group', nullable: true })
+  permission_group!: string;
 
-  @Column({ default: 'api' })
-  guard_name: string;
+  @Column({ name: 'guard_name', default: 'web' })
+  guard_name!: string;
 
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
+  created_at!: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
+  updated_at!: Date;
+
+  // ✅ ADD THIS
   @ManyToMany(() => Role, (role) => role.permissions)
-  roles: Role[];
+  roles!: Role[];
 }

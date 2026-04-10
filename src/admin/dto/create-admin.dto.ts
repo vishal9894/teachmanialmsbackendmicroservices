@@ -3,24 +3,30 @@ import {
   IsNotEmpty,
   MinLength,
   IsOptional,
-  IsNumber,
+  IsUUID,
+  IsBoolean,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 
 export class CreateAdminDto {
-    
+
   @IsNotEmpty()
-  name: string;
+  name!: string;
 
   @IsEmail()
-  email: string;
+  email!: string;
 
+  @IsNotEmpty()
   @MinLength(6)
-  password: string;
+  password!: string;
 
-  // ✅ OPTIONAL ROLE
   @IsOptional()
-  @Type(() => Number) // converts string -> number
-  @IsNumber()
-  roleId?: number;
+  @IsUUID()
+  roleId?: string;
+
+  @IsOptional()
+ 
+  status?: boolean;
+
+  @IsOptional()
+  image!:string;
 }

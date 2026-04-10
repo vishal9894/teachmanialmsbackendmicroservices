@@ -4,17 +4,31 @@ import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 export class User {
 
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column()
-  name: string;
+  name!: string;
 
   @Column({ unique: true })
-  email: string;
+  email!: string;
 
   @Column()
-  password: string;
+  password!: string;
 
   @Column({ nullable: true })
-  refreshToken: string;
+  state?: string;
+
+  @Column({ nullable: true })
+  city?: string;
+  @Column({ nullable: true })
+  phone_number!: string;
+
+  @Column({ nullable: true })
+  image?: string;
+
+  @Column({ nullable: true })
+  refreshToken?: string;
+
+  @Column({ type: 'date', nullable: true })
+  joinDate?: Date;
 }

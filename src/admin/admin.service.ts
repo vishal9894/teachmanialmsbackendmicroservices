@@ -1,79 +1,96 @@
 import {
   Injectable,
-  ConflictException,
-  NotFoundException,
   UnauthorizedException,
+  NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
+
 import { Admin } from './entities/admin.entity';
 import { Role } from 'src/role/entities/role.entity';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { LoginAdminDto } from './dto/login-admin.dto';
-import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
+import { UpdateAdminDto } from './dto/update-admin.dto';
+import { Permission } from 'src/permission/entities/permission.entity';
+import { S3Service } from 'src/common/services/s3.service';
 
 @Injectable()
 export class AdminService {
   constructor(
     @InjectRepository(Admin)
-    private readonly adminRepo: Repository<Admin>,
+    private adminRepository: Repository<Admin>,
 
     @InjectRepository(Role)
-    private readonly roleRepo: Repository<Role>,
+    private roleRepository: Repository<Role>,
 
-    private readonly jwtService: JwtService,
+    @InjectRepository(Permission)
+    private permissionRepository: Repository<Permission>,
+    private readonly s3Service: S3Service,
+
+    private jwtService: JwtService,
   ) {}
 
-  async create(dto: CreateAdminDto) {
+  async create(dto: CreateAdminDto, file?: Express.Multer.File) {
     const { name, email, password, roleId } = dto;
 
-    const existingAdmin = await this.adminRepo.findOne({
+    const imageUrl = file
+      ? await this.s3Service.upload(file, 'admins')
+      : undefined;
+
+    const existing = await this.adminRepository.findOne({
       where: { email },
     });
 
-    if (existingAdmin) {
-      throw new ConflictException(
-        'Admin already exists with this email',
-      );
+    if (existing) {
+      throw new UnauthorizedException('Admin already exists');
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    let role: Role | null = null;
 
-   let role: Role | undefined;
+    if (roleId) {
+      role = await this.roleRepository.findOne({
+        where: { id: roleId },
+        relations: ['permissions'],
+      });
 
-const adminCount = await this.adminRepo.count();
+      if (!role) {
+        throw new NotFoundException('Role not found');
+      }
+    }
 
-if (adminCount === 0) {
-  const superAdminRole = await this.roleRepo.findOne({
-    where: { name: 'SUPER_ADMIN' },
-  });
+    if (!role) {
+      role = await this.roleRepository.findOne({
+        where: { name: 'SUPERADMIN' },
+        relations: ['permissions'],
+      });
 
-  if (!superAdminRole) {
-    throw new NotFoundException('SUPER_ADMIN role not found');
-  }
+      if (!role) {
+        const permissions = await this.permissionRepository.find();
 
-  role = superAdminRole; // ✅ never null now
-} else if (roleId) {
-  const foundRole = await this.roleRepo.findOne({
-    where: { id: roleId },
-  });
+        role = this.roleRepository.create({
+          name: 'SUPERADMIN',
+          description: 'Auto generated super admin',
+          permissions,
+        });
 
-  if (!foundRole) {
-    throw new NotFoundException('Role not found');
-  }
+        role = await this.roleRepository.save(role);
+      }
+    }
 
-  role = foundRole;
-}
+    const hashpassword = await bcrypt.hash(password, 10);
 
-    const admin = this.adminRepo.create({
+    const admin = this.adminRepository.create({
       name,
       email,
-      password: hashedPassword,
+      password: hashpassword,
       role,
+      image: imageUrl,
     });
 
-    const savedAdmin: Admin = await this.adminRepo.save(admin);
+    const savedAdmin = await this.adminRepository.save(admin);
 
     return {
       message: 'Admin created successfully',
@@ -81,94 +98,167 @@ if (adminCount === 0) {
         id: savedAdmin.id,
         name: savedAdmin.name,
         email: savedAdmin.email,
-        role: savedAdmin.role?.name ?? null,
+        role: savedAdmin.role.name,
       },
     };
   }
 
-  async login(dto: LoginAdminDto) {
-    const { email, password } = dto;
+  async login(loginAdminDto: LoginAdminDto) {
+  const { email, password } = loginAdminDto;
 
-    const admin = await this.adminRepo.findOne({
-      where: { email },
-      relations: ['role'],
-    });
+ 
+  const admin = await this.adminRepository
+    .createQueryBuilder('admin')
+    .addSelect('admin.password') 
+    .leftJoinAndSelect('admin.role', 'role')
+    .where('admin.email = :email', { email })
+    .getOne();
 
-    if (!admin) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+  if (!admin) {
+    throw new UnauthorizedException('Invalid credentials');
+  }
 
-    const isPasswordValid = await bcrypt.compare(
-      password,
-      admin.password,
-    );
+ 
+  if (!admin.password) {
+    throw new UnauthorizedException('Password not found');
+  }
 
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+  const isPasswordValid = await bcrypt.compare(
+    password,
+    admin.password,
+  );
 
-    const payload = {
-      sub: admin.id,
+  if (!isPasswordValid) {
+    throw new UnauthorizedException('Invalid credentials');
+  }
+
+  const payload = {
+    id: admin.id,
+    email: admin.email,
+  };
+
+  const access_token = this.jwtService.sign(payload);
+
+  return {
+    access_token,
+    admin: {
+      id: admin.id,
+      name: admin.name,
       email: admin.email,
-      role: admin.role?.name ?? null,
-    };
-
-    const token = await this.jwtService.signAsync(payload);
-
-    return {
-      message: 'Login successful',
-      access_token: token,
-      admin: {
-        id: admin.id,
-        name: admin.name,
-        email: admin.email,
-        role: admin.role?.name ?? null,
-      },
-    };
-  }
+      role: admin.role?.name,
+    },
+  };
+}
 
   async findAll() {
-    const admins = await this.adminRepo.find({
+    const admins = await this.adminRepository.find({
       relations: ['role'],
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: {
-          id: true,
-          name: true,
-        },
-      },
     });
 
-    return {
-      message: 'Admins fetched successfully',
-      data: admins,
-    };
+    return admins.map((admin) => ({
+      ...admin,
+      role: admin.role?.name ?? null,
+    }));
   }
 
   async getProfile(id: string) {
-    const admin = await this.adminRepo.findOne({
+    const admin = await this.adminRepository.findOne({
       where: { id },
       relations: ['role'],
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: {
-          id: true,
-          name: true,
-        },
-      },
     });
 
     if (!admin) {
       throw new NotFoundException('Admin not found');
     }
 
+    const {password , ...res} = admin;
+    
+
     return {
-      message: 'Profile fetched successfully',
-      admin,
+      ...res ,
+      role : admin.role?.name
+    };
+  }
+
+  async update(id: string, dto: UpdateAdminDto, file?: Express.Multer.File) {
+    const admin = await this.adminRepository.findOne({
+      where: { id },
+      relations: ['role'],
+    });
+
+    if (!admin) {
+      throw new NotFoundException('Admin not found');
+    }
+
+    const { password, roleId, status, ...rest } = dto;
+
+    // ✅ upload image only if provided
+    let imageUrl: string | undefined;
+    if (file) {
+      imageUrl = await this.s3Service.upload(file, 'admins');
+    }
+
+    // ✅ update normal fields
+    Object.assign(admin, rest);
+
+    // ✅ update image
+    if (imageUrl) {
+      admin.image = imageUrl;
+    }
+
+    // ✅ update status
+    if (status !== undefined) {
+      admin.status = status;
+    }
+
+    // ✅ update password
+    if (password) {
+      admin.password = await bcrypt.hash(password, 10);
+    }
+
+    // ✅ update role
+    if (roleId) {
+      const role = await this.roleRepository.findOne({
+        where: { id: roleId },
+      });
+
+      if (!role) {
+        throw new NotFoundException(`Role ${roleId} not found`);
+      }
+
+      admin.role = role;
+    }
+
+    const savedAdmin = await this.adminRepository.save(admin);
+
+    return {
+      message: 'Admin updated successfully',
+      admin: {
+        id: savedAdmin.id,
+        name: savedAdmin.name,
+        email: savedAdmin.email,
+        phone_number: savedAdmin.phone_number,
+        status: savedAdmin.status,
+        image: savedAdmin.image,
+        role: savedAdmin.role?.name ?? null,
+        roleId: savedAdmin.role?.id ?? null,
+      },
+    };
+  }
+
+  async delete(id: string) {
+    const admin = await this.adminRepository.findOne({
+      where: { id },
+    });
+
+    if (!admin) {
+      throw new NotFoundException('Admin not exist');
+    }
+
+    await this.adminRepository.remove(admin);
+
+    return {
+      message: 'Admin deleted successfully',
     };
   }
 }

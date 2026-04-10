@@ -1,23 +1,27 @@
-import  { SuperStream } from 'src/superstream/entities/superstream.entity';
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-} from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn, UpdateDateColumn, JoinColumn } from 'typeorm';
+import { SuperStream } from '../../superstream/entities/superstream.entity';
 
 @Entity('streams')
 export class Stream {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column()
-  name: string; // Arts, Science, Commerce
+  name!: string;
 
-  @ManyToOne(
-    () => SuperStream,
-    (superstream) => superstream.streams,
-    { onDelete: 'CASCADE' },
-  )
-  superstream: SuperStream;
+  @Column({ nullable: true })
+  description!: string;
+
+  @Column({ nullable: true })
+  image!: string;
+
+  @ManyToOne(() => SuperStream, (superstream) => superstream.streams)
+  @JoinColumn({ name: 'superstream_id' })
+  superstream!: SuperStream;
+
+  @CreateDateColumn()
+  createdAt!: Date;
+
+  @UpdateDateColumn()
+  updatedAt!: Date;
 }
