@@ -36,7 +36,7 @@ register(@Body() registerUserDto: RegisterDto) {
     @Body() updateDto : UpdateUserDto,
 
   ){
-    console.log(id);
+  
     
     return this.authService.updateUserById(id , updateDto )
   }

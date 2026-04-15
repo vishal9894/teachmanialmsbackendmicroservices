@@ -33,75 +33,69 @@ export class AdminService {
     private jwtService: JwtService,
   ) {}
 
-  async create(dto: CreateAdminDto, file?: Express.Multer.File) {
-    const { name, email, password, roleId } = dto;
+ async create(dto: CreateAdminDto, file?: Express.Multer.File) {
+  const { name, email, password } = dto;
 
-    const imageUrl = file
-      ? await this.s3Service.upload(file, 'admins')
-      : undefined;
+  const imageUrl = file
+    ? await this.s3Service.upload(file, 'admins')
+    : undefined;
 
-    const existing = await this.adminRepository.findOne({
-      where: { email },
-    });
+ 
+  const existing = await this.adminRepository.findOne({
+    where: { email },
+  });
 
-    if (existing) {
-      throw new UnauthorizedException('Admin already exists');
-    }
-
-    let role: Role | null = null;
-
-    if (roleId) {
-      role = await this.roleRepository.findOne({
-        where: { id: roleId },
-        relations: ['permissions'],
-      });
-
-      if (!role) {
-        throw new NotFoundException('Role not found');
-      }
-    }
-
-    if (!role) {
-      role = await this.roleRepository.findOne({
-        where: { name: 'SUPERADMIN' },
-        relations: ['permissions'],
-      });
-
-      if (!role) {
-        const permissions = await this.permissionRepository.find();
-
-        role = this.roleRepository.create({
-          name: 'SUPERADMIN',
-          description: 'Auto generated super admin',
-          permissions,
-        });
-
-        role = await this.roleRepository.save(role);
-      }
-    }
-
-    const hashpassword = await bcrypt.hash(password, 10);
-
-    const admin = this.adminRepository.create({
-      name,
-      email,
-      password: hashpassword,
-      role,
-      image: imageUrl,
-    });
-
-    const savedAdmin = await this.adminRepository.save(admin);
-
-    return {
-      message: 'Admin created successfully',
-      admin: {
-        id: savedAdmin.id,
-        name: savedAdmin.name,
-        email: savedAdmin.email,
-        role: savedAdmin.role.name,
-      },
-    };
+  if (existing) {
+    throw new UnauthorizedException('Admin already exists');
   }
+
+  
+  const permissions = await this.permissionRepository.find();
+
+ 
+  let role = await this.roleRepository.findOne({
+    where: { name: 'SUPERADMIN' },
+    relations: ['permissions'],
+  });
+
+  if (!role) {
+    role = this.roleRepository.create({
+      name: 'SUPERADMIN',
+      description: 'System Super Admin',
+      permissions,
+    });
+
+    role = await this.roleRepository.save(role);
+  } else {
+   
+    role.permissions = permissions;
+    role = await this.roleRepository.save(role);
+  }
+
+ 
+  const hashpassword = await bcrypt.hash(password, 10);
+
+ 
+  const admin = this.adminRepository.create({
+    name,
+    email,
+    password: hashpassword,
+    role,
+    image: imageUrl,
+  });
+
+  const savedAdmin = await this.adminRepository.save(admin);
+
+  return {
+    message: 'Admin created successfully',
+    admin: {
+      id: savedAdmin.id,
+      name: savedAdmin.name,
+      email: savedAdmin.email,
+      role: 'SUPERADMIN',
+    },
+  };
+}
 
   async login(loginAdminDto: LoginAdminDto) {
   const { email, password } = loginAdminDto;

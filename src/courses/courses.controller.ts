@@ -21,36 +21,39 @@ import { UpdateCourseDto } from './dto/update-courses.dto';
 export class CoursesController {
   constructor(private readonly courseService: CoursesService) {}
 
-@Post()
-@UseInterceptors(
-  FileFieldsInterceptor([
-    { name: 'courseimage', maxCount: 1 },
-    { name: 'timetable', maxCount: 1 },
-    { name: 'batchinfo', maxCount: 1 },
-  ]),
-)
-create(
-  @UploadedFiles()
-  files: {
-    courseimage?: Express.Multer.File[];
-    timetable?: Express.Multer.File[];
-    batchinfo?: Express.Multer.File[];
-  },
-  @Body() body: CreateCourseDto,
-) {
-  return this.courseService.create(body, files);
-}
+  @Post()
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'courseimage', maxCount: 1 },
+      { name: 'timetable', maxCount: 1 },
+      { name: 'batchinfo', maxCount: 1 },
+    ]),
+  )
+  create(
+    @UploadedFiles()
+    files: {
+      courseimage?: Express.Multer.File[];
+      timetable?: Express.Multer.File[];
+      batchinfo?: Express.Multer.File[];
+    },
+    @Body() body: CreateCourseDto,
+  ) {
+    return this.courseService.create(body, files);
+  }
   @Get()
   findAll(@Query('type') type: CourseType) {
     return this.courseService.findByType(type);
   }
+  @Get('by-stream')
+  getByStream(@Query('streamId') streamId: string) {
+    return this.courseService.findByStream(streamId);
+  }
   @Patch(':id')
   updateStatus(@Param('id') id: string, @Body() dto: UpdateCourseDto) {
-    console.log(id);
     return this.courseService.status(id, dto);
   }
   @Delete(':id')
-  remove (@Param('id') id:string){
-    return this.courseService.remove(id)
+  remove(@Param('id') id: string) {
+    return this.courseService.remove(id);
   }
 }

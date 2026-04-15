@@ -24,15 +24,17 @@ export class AdminController {
 
   @Post()
   @UseInterceptors(FileInterceptor('image'))
-  create(@Body() dto: CreateAdminDto , @UploadedFile() file?: Express.Multer.File) {
-    
-    return this.adminService.create(dto , file);
+  create(
+    @Body() dto: CreateAdminDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    return this.adminService.create(dto, file);
   }
 
   @Post('login')
-  login(@Body() dto: LoginAdminDto ) {
+  login(@Body() dto: LoginAdminDto) {
     console.log(dto);
-    
+
     return this.adminService.login(dto);
   }
 
@@ -49,12 +51,12 @@ export class AdminController {
 
   @Patch(':id')
   @UseInterceptors(FileInterceptor('image'))
-  update(@Param('id') id: string, @Body() updateAdminDto: UpdateAdminDto ,
-  @UploadedFile() file? : Express.Multer.File
-
-) {
-  
-    return this.adminService.update(id, updateAdminDto ,file);
+  update(
+    @Param('id') id: string,
+    @Body() updateAdminDto: UpdateAdminDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    return this.adminService.update(id, updateAdminDto, file);
   }
   @Delete(':id')
   delelte(@Param('id') id: string) {

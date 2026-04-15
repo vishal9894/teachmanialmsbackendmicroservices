@@ -18,6 +18,7 @@ export class PermissionController {
 
   @Post()
   async create(@Body() createPermissionDto: any): Promise<Permission> {
+    
     return this.permissionService.create(createPermissionDto);
   }
 

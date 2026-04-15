@@ -25,6 +25,8 @@ export class Admin {
   phone_number!: string;
   @Column({ nullable: true })
   image!: string;
+  @Column({ nullable: true })
+  coin!: string;
 
   @Column({ select: false })
   password!: string;

@@ -39,6 +39,8 @@ export class RoleController {
 
   @Put(':id')
   update(@Param('id') id: string, @Body() dto: UpdateRoleDto) {
+   
+    
     return this.roleService.update(id, dto);
   }
 }

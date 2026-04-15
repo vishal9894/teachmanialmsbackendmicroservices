@@ -16,7 +16,11 @@ import { S3Service } from './common/services/s3.service';
 import { TopStudentsModule } from './top-students/top-students.module';
 import { CoursesModule } from './courses/courses.module';
 import { BannerModule } from './banner/banner.module';
-
+import { FoldersModule } from './folders/folders.module';
+import { TeachersModule } from './teachers/teachers.module';
+import { FileContentModule } from './file-content/file-content.module';
+import { EventsModule } from './events/events.module';
+import { AttachmentsModule } from './attachments/attachments.module';
 
 @Module({
   imports: [
@@ -35,6 +39,16 @@ import { BannerModule } from './banner/banner.module';
       synchronize: true,
     }),
 
+    // TypeOrmModule.forRoot({
+    //   type: 'postgres',
+    //   url: process.env.DATABASE_URL,
+    //   ssl: {
+    //     rejectUnauthorized: false,
+    //   },
+    //   autoLoadEntities: true,
+    //   synchronize: true,
+    // }),
+
     AuthModule,
     UserModule,
     SuperstreamModule,
@@ -46,11 +60,15 @@ import { BannerModule } from './banner/banner.module';
     TopStudentsModule,
     CoursesModule,
     BannerModule,
-    
+    FoldersModule,
+    TeachersModule,
+    FileContentModule,
+    EventsModule,
+    AttachmentsModule,
   ],
   controllers: [AppController],
-  providers: [AppService,S3Service],
- 
-  exports :[S3Service]
+  providers: [AppService, S3Service],
+
+  exports: [S3Service],
 })
 export class AppModule {}

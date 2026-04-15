@@ -11,45 +11,44 @@ export enum ContentType {
   NEWS = 'news',
 }
 
-@Entity('contents')
+@Entity('banners')
 export class Banner {
-
   @PrimaryGeneratedColumn('uuid')
-    id!: string;
+  id!: string;
 
   @Column()
-    title!: string;
+  title!: string;
 
   // ✅ banner or news
   @Column({
-        type: 'enum',
-        enum: ContentType,
-    })
-    type!: ContentType;
+    type: 'enum',
+    enum: ContentType,
+  })
+  type!: ContentType;
 
   // banner related (optional)
   @Column({ nullable: true })
-    courseName!: string;
+  courseName!: string;
 
   @Column({ type: 'uuid', nullable: true })
-    courseId!: string;
+  courseId!: string;
 
   @Column({ nullable: true })
-    courseUrl!: string;
+  courseUrl!: string;
 
   // news related (optional)
   @Column({ type: 'text', nullable: true })
-    description!: string;
+  description!: string;
 
-  @Column({nullable : true})
-    image!: string;
+  @Column({ nullable: true })
+  image!: string;
 
   @Column({ default: true })
-    status!: boolean;
+  status!: boolean;
 
   @CreateDateColumn()
-    createdAt!: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-    updatedAt!: Date;
+  updatedAt!: Date;
 }
