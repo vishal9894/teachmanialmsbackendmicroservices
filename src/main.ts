@@ -5,6 +5,7 @@ import * as express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -12,15 +13,19 @@ async function bootstrap() {
       forbidNonWhitelisted: false,
     }),
   );
+
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
-  app.useGlobalPipes(new ValidationPipe());
+
   app.enableCors({
     origin: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
+
   const PORT = process.env.PORT || 3000;
-  await app.listen(PORT);
+
+  await app.listen(PORT, '0.0.0.0'); // ✅ IMPORTANT
+  console.log(`Server running on port ${PORT}`);
 }
 bootstrap();
