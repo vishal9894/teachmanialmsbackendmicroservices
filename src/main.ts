@@ -5,7 +5,7 @@ import * as express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-   app.useGlobalPipes(
+  app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       transform: true,
@@ -15,12 +15,12 @@ async function bootstrap() {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.useGlobalPipes(new ValidationPipe());
-   app.enableCors({
-    origin: true ,
+  app.enableCors({
+    origin: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    credentials: true, 
+    credentials: true,
   });
   const PORT = process.env.PORT || 3000;
-  await app.listen(PORT, '0.0.0.0');
+  await app.listen(PORT);
 }
 bootstrap();
