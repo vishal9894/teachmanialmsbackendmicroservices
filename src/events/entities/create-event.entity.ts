@@ -1,4 +1,10 @@
-import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 export enum AccessType {
   FREE = 'free',
@@ -10,16 +16,19 @@ export class Event {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
+  @Column({ type: 'uuid', nullable: true })
+  organizationId?: string;
+
   @Column({ nullable: true })
   name!: string;
 
-  @Column({type: 'uuid', nullable: true})
+  @Column({ type: 'uuid', nullable: true })
   courseId!: string;
 
   @Column({ nullable: true })
   courseName!: string;
 
-  @Column({type: 'uuid', nullable: true })
+  @Column({ type: 'uuid', nullable: true })
   folderId!: string;
 
   @Column({ nullable: true })

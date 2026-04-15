@@ -16,6 +16,9 @@ export class Banner {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
+  @Column({ type: 'uuid', nullable: true })
+  organizationId?: string;
+
   @Column()
   title!: string;
 

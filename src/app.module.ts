@@ -21,6 +21,7 @@ import { TeachersModule } from './teachers/teachers.module';
 import { FileContentModule } from './file-content/file-content.module';
 import { EventsModule } from './events/events.module';
 import { AttachmentsModule } from './attachments/attachments.module';
+import { OrganizationModule } from './organization/organization.module';
 
 @Module({
   imports: [
@@ -28,26 +29,26 @@ import { AttachmentsModule } from './attachments/attachments.module';
       isGlobal: true,
     }),
 
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST || 'localhost',
-      port: Number(process.env.DB_PORT) || 5432,
-      username: process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD || '', // ✅ fallback to empty string
-      database: process.env.DB_NAME || 'teachmaniabackend',
-      autoLoadEntities: true,
-      synchronize: true,
-    }),
-
     // TypeOrmModule.forRoot({
     //   type: 'postgres',
-    //   url: process.env.DATABASE_URL,
-    //   ssl: {
-    //     rejectUnauthorized: false,
-    //   },
+    //   host: process.env.DB_HOST || 'localhost',
+    //   port: Number(process.env.DB_PORT) || 5432,
+    //   username: process.env.DB_USER || 'postgres',
+    //   password: process.env.DB_PASSWORD || '', // ✅ fallback to empty string
+    //   database: process.env.DB_NAME || 'teachmaniabackend',
     //   autoLoadEntities: true,
     //   synchronize: true,
     // }),
+
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      url: process.env.DATABASE_URL,
+      ssl: {
+        rejectUnauthorized: false,
+      },
+      autoLoadEntities: true,
+      synchronize: true,
+    }),
 
     AuthModule,
     UserModule,
@@ -65,6 +66,7 @@ import { AttachmentsModule } from './attachments/attachments.module';
     FileContentModule,
     EventsModule,
     AttachmentsModule,
+    OrganizationModule,
   ],
   controllers: [AppController],
   providers: [AppService, S3Service],

@@ -1,10 +1,10 @@
 // src/course/entities/course.entity.ts
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 export enum CourseType {
@@ -19,6 +19,9 @@ export enum CourseType {
 export class Course {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
+
+  @Column({ type: 'uuid', nullable: true })
+  organizationId?: string;
 
   // Basic info
   @Column()
@@ -72,16 +75,24 @@ export class Course {
   chapterName?: string;
 
   // Pricing (decimal fields transformed to numbers)
-  @Column({ type: 'decimal', nullable: true, transformer: {
-    to: (value: number) => value,
-    from: (value: string) => value ? parseFloat(value) : null
-  }})
+  @Column({
+    type: 'decimal',
+    nullable: true,
+    transformer: {
+      to: (value: number) => value,
+      from: (value: string) => (value ? parseFloat(value) : null),
+    },
+  })
   strikeoutPrice?: number;
 
-  @Column({ type: 'decimal', nullable: true, transformer: {
-    to: (value: number) => value,
-    from: (value: string) => value ? parseFloat(value) : null
-  }})
+  @Column({
+    type: 'decimal',
+    nullable: true,
+    transformer: {
+      to: (value: number) => value,
+      from: (value: string) => (value ? parseFloat(value) : null),
+    },
+  })
   currentPrice?: number;
 
   @Column({ nullable: true })
@@ -93,19 +104,27 @@ export class Course {
   @Column({ nullable: true })
   durationDescription?: string;
 
-  @Column({ type: 'decimal', nullable: true, transformer: {
-    to: (value: number) => value,
-    from: (value: string) => value ? parseFloat(value) : null
-  }})
+  @Column({
+    type: 'decimal',
+    nullable: true,
+    transformer: {
+      to: (value: number) => value,
+      from: (value: string) => (value ? parseFloat(value) : null),
+    },
+  })
   amount?: number;
 
   @Column({ nullable: true })
   upgradeDuration?: string;
 
-  @Column({ type: 'decimal', nullable: true, transformer: {
-    to: (value: number) => value,
-    from: (value: string) => value ? parseFloat(value) : null
-  }})
+  @Column({
+    type: 'decimal',
+    nullable: true,
+    transformer: {
+      to: (value: number) => value,
+      from: (value: string) => (value ? parseFloat(value) : null),
+    },
+  })
   upgradePrice?: number;
 
   @Column({ nullable: true })

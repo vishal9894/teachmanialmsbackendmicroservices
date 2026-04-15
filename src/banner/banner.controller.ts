@@ -1,4 +1,14 @@
-import { Controller, Post, Body, UploadedFile, UseInterceptors, Get, Query, Delete, Param } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UploadedFile,
+  UseInterceptors,
+  Get,
+  Query,
+  Delete,
+  Param,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { BannerService } from './banner.service';
 import { CreateBannerDto } from './dto/create-banner.dto';
@@ -17,17 +27,21 @@ export class BannerController {
     return this.bannerService.create(createBannerDto, file);
   }
 
-  
   @Get()
-  getByType(@Query('type') type: ContentType) {
-    return this.bannerService.findByType(type);
+  findAll(@Query('type') type?: ContentType) {
+    if (type) {
+      return this.bannerService.findByType(type);
+    }
+    return this.bannerService.findAll();
   }
-  @Get()
-  findall(){
-    return this.bannerService.findAll()
+
+  @Get('stream/:streamId')
+  findByStream(@Param('streamId') streamId: string) {
+    return this.bannerService.findByStream(streamId);
   }
+
   @Delete(':id')
-  remove(@Param('id') id:string){
-    return this.bannerService.remove(id)
+  remove(@Param('id') id: string) {
+    return this.bannerService.remove(id);
   }
 }

@@ -6,26 +6,22 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('top_teachers')
-export class TopTeachers {
+@Entity('organizations')
+export class Organization {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ type: 'uuid', nullable: true })
-  organizationId?: string;
+  @Column({ unique: true })
+  code!: string;
 
   @Column()
   name!: string;
 
   @Column({ type: 'text', nullable: true })
-  about?: string;
+  description?: string;
 
-  @Column()
-  streamid!: string;
-
-  // ✅ FIXED
-  @Column({ nullable: true })
-  image?: string;
+  @Column({ default: true })
+  status!: boolean;
 
   @CreateDateColumn()
   createdAt!: Date;

@@ -1,23 +1,20 @@
-import {
-  IsEmail,
-  IsString,
-  MinLength,
-  IsOptional,
-  IsDateString,
-} from 'class-validator';
+import { IsEmail, IsString, MinLength, IsOptional } from 'class-validator';
 
 export class RegisterDto {
-
   @IsString()
-    @MinLength(2)
-    name!: string;
+  @MinLength(2)
+  name!: string;
 
   @IsEmail()
-    email!: string;
+  email!: string;
 
   @IsString()
-    @MinLength(6)
-    password!: string;
+  @MinLength(6)
+  password!: string;
+
+  @IsOptional()
+  @IsString()
+  organizationCode?: string;
 
   // optional at register (usually generated after login)
   @IsOptional()
@@ -26,5 +23,5 @@ export class RegisterDto {
 
   // join date when user registers
   @IsOptional()
-    joinDate!: string;
+  joinDate!: string;
 }

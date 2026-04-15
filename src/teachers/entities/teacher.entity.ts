@@ -10,10 +10,13 @@ export class Teacher {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
+  @Column({ type: 'uuid', nullable: true })
+  organizationId?: string;
+
   @Column()
   name!: string;
 
-  @Column({nullable : true})
+  @Column({ nullable: true })
   image!: string;
 
   @Column()
@@ -22,15 +25,15 @@ export class Teacher {
   @Column()
   revenue_share!: string;
 
-  @Column({nullable : true})
+  @Column({ nullable: true })
   assigned_course_id!: string;
 
   @Column()
   rating!: string;
 
   @Column()
-  teacherdetails!: string; 
+  teacherdetails!: string;
 
   @CreateDateColumn()
-  createdAt!: Date; 
+  createdAt!: Date;
 }

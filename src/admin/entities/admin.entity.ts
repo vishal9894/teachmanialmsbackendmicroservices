@@ -15,6 +15,9 @@ export class Admin {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
+  @Column({ type: 'uuid', nullable: true })
+  organizationId?: string;
+
   @Column()
   name!: string;
 

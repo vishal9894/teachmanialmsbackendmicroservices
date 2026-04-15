@@ -6,56 +6,82 @@ import { RegisterDto } from 'src/auth/dto/registerUser.dto';
 
 @Injectable()
 export class UserService {
-  repo: any;
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
   ) {}
 
-  
-  async createUser(registerUserDto: RegisterDto) {
+  async createUser(registerUserDto: RegisterDto & { organizationId?: string }) {
     const user = this.userRepository.create(registerUserDto);
-    return await this.userRepository.save(user);
+    return this.userRepository.save(user);
   }
 
-  
   async findByEmail(email: string) {
-  return await this.userRepository.findOne({
-    where: { email },
-  });
-}
+    return this.userRepository.findOne({
+      where: { email },
+      select: [
+        'id',
+        'name',
+        'email',
+        'password',
+        'organizationId',
+        'refreshToken',
+        'joinDate',
+        'state',
+        'city',
+        'phone_number',
+        'image',
+      ],
+    });
+  }
 
-  
+  async findByEmailAndOrg(email: string, organizationId: string) {
+    return this.userRepository.findOne({
+      where: { email, organizationId },
+      select: [
+        'id',
+        'name',
+        'email',
+        'password',
+        'organizationId',
+        'refreshToken',
+        'joinDate',
+        'state',
+        'city',
+        'phone_number',
+        'image',
+      ],
+    });
+  }
+
   async findAllUsers() {
-    return await this.userRepository.find();
+    return this.userRepository.find();
   }
 
- async findById(id: string) {
-  return await this.userRepository.findOne({
-    where: { id: id },
-  });
-}
-
-async setRefreshToken(userId: string, refreshToken: string) {
-  return await this.userRepository.update(userId, { refreshToken });
-}
-
-async updateUser(id: string, data: Partial<User>) {
-  await this.userRepository.update(id, data);
-  return this.findById(id);
-}
-
-
-async remove(user: User) {
-  return await this.userRepository.remove(user); 
-}
-
-
-async deleteById(id: string) {
-  const result = await this.userRepository.delete(id);
-  if (result.affected === 0) {
-    throw new NotFoundException("User not found");
+  async findById(id: string) {
+    return this.userRepository.findOne({
+      where: { id },
+    });
   }
-  return result;
-}
+
+  async setRefreshToken(userId: string, refreshToken: string) {
+    return this.userRepository.update(userId, { refreshToken });
+  }
+
+  async updateUser(id: string, data: Partial<User>) {
+    await this.userRepository.update(id, data);
+    return this.findById(id);
+  }
+
+  async remove(user: User) {
+    return this.userRepository.remove(user);
+  }
+
+  async deleteById(id: string) {
+    const result = await this.userRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException('User not found');
+    }
+    return result;
+  }
 }

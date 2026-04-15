@@ -23,7 +23,17 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+This repository is a NestJS backend for a multi-organization learning platform.
+It supports organization-based tenant data, authentication, courses, banners, streams, and more.
+
+## API Documentation
+
+Full API details are available in `API_README.md`.
+
+### Important banner behavior
+
+- A stream should show banners only when courses exist for that stream.
+- Use: `GET /banners/stream/:streamId`
 
 ## Project setup
 

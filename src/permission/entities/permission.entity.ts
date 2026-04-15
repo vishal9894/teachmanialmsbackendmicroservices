@@ -15,6 +15,9 @@ export class Permission {
   @PrimaryGeneratedColumn()
   id!: number;
 
+  @Column({ type: 'uuid', nullable: true })
+  organizationId?: string;
+
   @Column()
   name!: string;
 

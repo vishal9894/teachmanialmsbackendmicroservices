@@ -2,9 +2,11 @@ import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity('users')
 export class User {
-
   @PrimaryGeneratedColumn('uuid')
   id!: string;
+
+  @Column({ type: 'uuid', nullable: true })
+  organizationId?: string;
 
   @Column()
   name!: string;
@@ -12,7 +14,7 @@ export class User {
   @Column({ unique: true })
   email!: string;
 
-  @Column({select: false })
+  @Column({ select: false })
   password!: string;
 
   @Column({ nullable: true })

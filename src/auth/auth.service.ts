@@ -9,42 +9,71 @@ import { RegisterDto } from './dto/registerUser.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import * as bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { OrganizationService } from 'src/organization/organization.service';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly organizationService: OrganizationService,
+  ) {}
 
-  async register(registerUserDto: RegisterDto) {
-    console.log(registerUserDto);
-
+  async register(registerUserDto: RegisterDto, organizationCode?: string) {
     const existingUser = await this.userService.findByEmail(
       registerUserDto.email,
     );
 
-    // ✅ correct condition
     if (existingUser) {
       throw new ConflictException('User already exists');
     }
 
     const hashpassword = await bcrypt.hash(registerUserDto.password, 10);
-
     const joinDate = new Date().toISOString().split('T')[0];
 
+    let organizationId: string | undefined;
+    const lookupCode =
+      organizationCode ?? registerUserDto.organizationCode ?? undefined;
+    if (lookupCode) {
+      const organization =
+        await this.organizationService.findByCode(lookupCode);
+      if (!organization) {
+        throw new NotFoundException('Organization not found');
+      }
+      organizationId = organization.id;
+    }
+
     const user = await this.userService.createUser({
-      ...registerUserDto,
+      name: registerUserDto.name,
+      email: registerUserDto.email,
       password: hashpassword,
       joinDate,
+      organizationId,
     });
 
     const secret = process.env.JWT_SECRET || 'defaultsecretkey';
+    const access_token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        organizationId: user.organizationId,
+      },
+      secret,
+      {
+        expiresIn: '7h',
+      },
+    );
 
-    const access_token = jwt.sign({ id: user.id, email: user.email }, secret, {
-      expiresIn: '7h',
-    });
-
-    const refreshToken = jwt.sign({ id: user.id, email: user.email }, secret, {
-      expiresIn: '15d',
-    });
+    const refreshToken = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        organizationId: user.organizationId,
+      },
+      secret,
+      {
+        expiresIn: '15d',
+      },
+    );
 
     await this.userService.setRefreshToken(user.id, refreshToken);
 
@@ -57,8 +86,21 @@ export class AuthService {
     };
   }
 
-  async login(email: string, password: string) {
-    const user = await this.userService.findByEmail(email);
+  async login(email: string, password: string, organizationCode?: string) {
+    let user;
+
+   
+    
+    if (organizationCode) {
+      const organization =
+        await this.organizationService.findByCode(organizationCode);
+      if (!organization) {
+        throw new NotFoundException('Organization not found');
+      }
+      user = await this.userService.findByEmailAndOrg(email, organization.id);
+    } else {
+      user = await this.userService.findByEmail(email);
+    }
 
     if (!user) {
       throw new UnauthorizedException('Invalid email');
@@ -75,14 +117,29 @@ export class AuthService {
     }
 
     const secret = process.env.JWT_SECRET || 'defaultsecretkey';
+    const access_token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        organizationId: user.organizationId,
+      },
+      secret,
+      {
+        expiresIn: '7h',
+      },
+    );
 
-    const access_token = jwt.sign({ id: user.id, email: user.email }, secret, {
-      expiresIn: '7h',
-    });
-
-    const refreshToken = jwt.sign({ id: user.id, email: user.email }, secret, {
-      expiresIn: '15d',
-    });
+    const refreshToken = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        organizationId: user.organizationId,
+      },
+      secret,
+      {
+        expiresIn: '15d',
+      },
+    );
 
     await this.userService.setRefreshToken(user.id, refreshToken);
 

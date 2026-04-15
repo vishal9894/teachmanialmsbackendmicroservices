@@ -12,10 +12,12 @@ import { Admin } from 'src/admin/entities/admin.entity';
 
 @Entity('roles')
 export class Role {
-
   // ✅ UUID PRIMARY KEY
   @PrimaryGeneratedColumn('uuid')
   id!: string;
+
+  @Column({ type: 'uuid', nullable: true })
+  organizationId?: string;
 
   @Column({ unique: true })
   name!: string;
