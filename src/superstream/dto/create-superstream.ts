@@ -1,3 +1,11 @@
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+
 export class CreateSuperStreamDto {
-  name?: string;
+  @IsNotEmpty()
+  @IsString()
+  name!: string;
+
+  @IsOptional()
+  @IsUUID()
+  organizationId?: string;
 }

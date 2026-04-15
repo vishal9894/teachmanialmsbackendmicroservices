@@ -6,7 +6,6 @@ import {
   Param,
   Put,
   Delete,
-  Req,
 } from '@nestjs/common';
 import { OrganizationService } from './organization.service';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
@@ -17,11 +16,8 @@ export class OrganizationController {
   constructor(private readonly organizationService: OrganizationService) {}
 
   @Post()
-  create(@Body() @Req() req:any , createOrganizationDto: CreateOrganizationDto) {
-   
-    const dto = req as CreateOrganizationDto;
-    
-    return this.organizationService.create(dto);
+  create(@Body() createOrganizationDto: CreateOrganizationDto) {
+    return this.organizationService.create(createOrganizationDto);
   }
 
   @Get()

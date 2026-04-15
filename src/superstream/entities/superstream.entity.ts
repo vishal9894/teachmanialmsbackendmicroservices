@@ -11,6 +11,7 @@ export class SuperStream {
 
   @Column({ unique: true })
   name!: string;
+  
 
   @OneToMany(() => Stream, (stream) => stream.superstream)
   streams!: Stream[];

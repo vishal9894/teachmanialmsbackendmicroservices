@@ -1,14 +1,19 @@
-import { IsString, IsOptional, MinLength } from 'class-validator';
+import { IsString, IsOptional, MinLength, IsBoolean } from 'class-validator';
 
 export class CreateOrganizationDto {
- 
+  @IsString()
+  @MinLength(2)
   name!: string;
 
- 
+  @IsString()
+  @MinLength(2)
   code!: string;
 
- 
+  @IsOptional()
+  @IsString()
   description?: string;
 
-  status!: boolean;
+  @IsOptional()
+  @IsBoolean()
+  status?: boolean;
 }

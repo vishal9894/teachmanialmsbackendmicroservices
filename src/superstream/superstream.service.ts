@@ -1,7 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SuperStream } from './entities/superstream.entity';
 import { Repository } from 'typeorm';
@@ -14,12 +11,10 @@ export class SuperstreamService {
     private superstreamRepo: Repository<SuperStream>,
   ) {}
 
-
-  async create(name: string) {
-    const superstream = this.superstreamRepo.create({ name });
+  async create(createSuperStreamDto: CreateSuperStreamDto) {
+    const superstream = this.superstreamRepo.create(createSuperStreamDto);
     return await this.superstreamRepo.save(superstream);
   }
-
 
   async findAll() {
     return await this.superstreamRepo.find({
@@ -29,7 +24,6 @@ export class SuperstreamService {
       },
     });
   }
-
 
   async update(id: string, updateDto: CreateSuperStreamDto) {
     const superstream = await this.superstreamRepo.findOne({
@@ -49,7 +43,6 @@ export class SuperstreamService {
       data: updated,
     };
   }
-
 
   async delete(id: string) {
     const superstream = await this.superstreamRepo.findOne({

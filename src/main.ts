@@ -5,7 +5,7 @@ import * as express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-   app.useGlobalPipes(
+  app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       transform: true,
@@ -14,12 +14,11 @@ async function bootstrap() {
   );
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
-  app.useGlobalPipes(new ValidationPipe());
-   app.enableCors({
-    origin: true ,
+  app.enableCors({
+    origin: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    credentials: true, 
+    credentials: true,
   });
-  await app.listen( 3000,'0.0.0.0');
+  await app.listen(3000, '0.0.0.0');
 }
 bootstrap();

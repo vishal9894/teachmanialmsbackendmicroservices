@@ -1,4 +1,12 @@
-import { Controller, Post, Body, Get, Put, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Put,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { SuperstreamService } from './superstream.service';
 import { CreateSuperStreamDto } from './dto/create-superstream';
 
@@ -7,8 +15,8 @@ export class SuperstreamController {
   constructor(private readonly superstreamService: SuperstreamService) {}
 
   @Post()
-  create(@Body('name') name: string) {
-    return this.superstreamService.create(name);
+  create(@Body() createSuperStreamDto: CreateSuperStreamDto) {
+    return this.superstreamService.create(createSuperStreamDto);
   }
 
   @Get()
@@ -16,11 +24,11 @@ export class SuperstreamController {
     return this.superstreamService.findAll();
   }
   @Put(':id')
-  update(@Param('id') id : string , @Body() dto : CreateSuperStreamDto){
-    return this.superstreamService.update(id , dto)
+  update(@Param('id') id: string, @Body() dto: CreateSuperStreamDto) {
+    return this.superstreamService.update(id, dto);
   }
   @Delete(':id')
-  delete(@Param('id') id:string){
+  delete(@Param('id') id: string) {
     return this.superstreamService.delete(id);
   }
 }
